@@ -1,4 +1,4 @@
-name: Build Ionic Android APK
+name: Build Ionic Android
 
 on:
   push:
@@ -8,31 +8,54 @@ on:
 
 jobs:
   build-android:
+    name: Build Android APK
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout del codice
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      # Step 2: Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: 20
 
-      - name: Install dependencies
-        run: npm install
+      # Step 3: Install dependencies
+      - name: Install npm packages
+        run: npm ci
 
+      # Step 4: Install Ionic e Capacitor CLI globalmente
+      - name: Install Ionic CLI
+        run: npm install -g @ionic/cli @capacitor/cli
+
+      # Step 5: Build Ionic app
       - name: Build Ionic app
-        run: npm run build
+        run: ionic build --prod
 
-      - name: Install Capacitor Android platform
+      # Step 6: Sync Capacitor
+      - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Build APK
-        run: cd android && ./gradlew assembleDebug
+      # Step 7: Setup Java & Android SDK
+      - name: Setup Java & Android SDK
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: default
+          arch: x86_64
+          script: |
+            echo "Java & SDK setup done"
 
-      - name: Upload APK artifact
+      # Step 8: Build APK
+      - name: Build APK
+        run: ./gradlew assembleDebug
+        working-directory: android
+
+      # Step 9: Upload APK as artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug
+          name: app-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
