@@ -1,0 +1,60 @@
+name: Build Ionic Android Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-android-release:
+    name: Build Android Release APK
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout del codice
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      # Step 3: Install dependencies
+      - name: Install npm packages
+        run: npm ci
+
+      # Step 4: Install Ionic & Capacitor CLI globally
+      - name: Install Ionic CLI
+        run: npm install -g @ionic/cli @capacitor/cli
+
+      # Step 5: Build Ionic app for production
+      - name: Build Ionic app
+        run: ionic build --prod
+
+      # Step 6: Sync Capacitor Android
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      # Step 7: Setup Java & Android SDK
+      - name: Setup Java & Android SDK
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: default
+          arch: x86_64
+          script: echo "SDK ready"
+
+      # Step 8: Build release APK
+      - name: Build Release APK
+        run: ./gradlew assembleRelease
+        working-directory: android
+
+      # Step 9: Upload release APK as artifact
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
