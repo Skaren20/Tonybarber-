@@ -6,9 +6,6 @@ on:
       - main
   workflow_dispatch:
 
-  env:
-  GH_TOKEN: ${{ secrets.GH_PAT }}
-
 jobs:
   build-android:
     runs-on: ubuntu-latest
