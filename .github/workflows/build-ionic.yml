@@ -1,4 +1,4 @@
-name: Build Ionic App
+name: Build Ionic APK
 
 on:
   push:
@@ -10,23 +10,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Setup Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: 18
 
       - name: Install dependencies
         run: npm install
 
-      - name: Build Ionic app
+      - name: Build Ionic project
         run: npm run build
 
-      - name: Install Capacitor CLI
-        run: npm install @capacitor/cli
+      - name: Build Android APK
+        run: |
+          npm install @capacitor/android
+          npx cap add android
+          cd android
+          ./gradlew assembleDebug
 
-      - name: Sync Capacitor
-        run: npx cap sync
-
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
