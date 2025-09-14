@@ -1,0 +1,44 @@
+name: Build Ionic Android APK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build Ionic project
+      run: npm run build --if-present
+
+    - name: Install Capacitor CLI
+      run: npm install @capacitor/cli @capacitor/android
+
+    - name: Copy web assets to Android
+      run: npx cap copy android
+
+    - name: Build Android APK
+      run: |
+        cd android
+        ./gradlew assembleDebug
+        cd ..
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: tonybarber-apk
+        path: android/app/build/outputs/apk/debug/app-debug.apk
