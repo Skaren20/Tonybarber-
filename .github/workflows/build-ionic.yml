@@ -31,8 +31,11 @@ jobs:
     - name: Install dependencies
       run: npm install --legacy-peer-deps
 
+    - name: Install Ionic CLI
+      run: npm install -g @ionic/cli
+
     - name: Build Ionic project
-      run: npm run build --if-present
+      run: ionic build
 
     - name: Install Capacitor CLI
       run: npm install @capacitor/cli @capacitor/android
